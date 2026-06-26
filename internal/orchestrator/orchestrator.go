@@ -12,8 +12,8 @@ func New(repo *Repository) *Orchestrator {
 }
 
 func (o *Orchestrator) Run(
-			ctx context.Context,
-			batchRunID string,
+	ctx context.Context,
+	batchRunID string,
 ) (<-chan ModuleTask, error) {
 	tasks, err := o.repo.GetBatchModules(batchRunID)
 	if err != nil {
