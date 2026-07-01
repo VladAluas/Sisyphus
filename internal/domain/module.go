@@ -2,7 +2,9 @@
 package domain
 
 type Module struct {
-	ID string
+	ModuleID    string
+	ModuleCode  string
+	ModuleRunID string
 }
 
 

@@ -2,6 +2,7 @@
 package domain
 
 type Layer struct {
-	ID string
+	LayerID    string
+	LayerCode  string
+	LayerRunID string
 }
-

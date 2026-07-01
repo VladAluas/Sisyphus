@@ -2,5 +2,7 @@
 package domain
 
 type Batch struct {
-	ID string
+	BatchID        string
+	BatchCode      string
+	BatchRunID     string
 }
