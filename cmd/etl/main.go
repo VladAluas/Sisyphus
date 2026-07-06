@@ -10,6 +10,7 @@ import (
 	"github.com/VladAluas/Sisyphus/internal/db"
 	"github.com/VladAluas/Sisyphus/internal/extractors"
 	"github.com/VladAluas/Sisyphus/internal/orchestrator"
+	"github.com/VladAluas/Sisyphus/internal/repository"
 )
 
 func main() {
@@ -29,7 +30,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	repo := orchestrator.NewRepository(pg)
+	repo := repository.NewRepository(pg)
 	orch := orchestrator.New(repo)
 
 	ctx := context.Background()

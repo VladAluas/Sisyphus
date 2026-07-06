@@ -2,7 +2,8 @@
 package domain
 
 type Batch struct {
-	BatchID        string
-	BatchCode      string
-	BatchRunID     string
+	BatchID         string
+	BatchCode       string
+	BatchRunID      string
+	BatchParameters map[string]string
 }
