@@ -5,11 +5,11 @@ import (
 	"context"
 	"log"
 
-	"github.com/VladAluas/Sisyphus/internal/orchestrator"
+	"github.com/VladAluas/Sisyphus/internal/domain"
 )
 
 type Extractor interface {
-	Extract(ctx context.Context, task orchestrator.ModuleTask) error
+	Extract(ctx context.Context, task domain.ExecutionUnit) error
 }
 
 func GetExtractor(sourceSystem string) (Extractor, error) {
@@ -28,7 +28,7 @@ func GetExtractor(sourceSystem string) (Extractor, error) {
 func ExtractWorker(
 	ctx context.Context,
 	id int,
-	jobs <-chan orchestrator.ModuleTask,
+	jobs <-chan domain.ExecutionUnit,
 ) {
 	for task := range jobs {
 		extractor, err := GetExtractor("Postgresql")
