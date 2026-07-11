@@ -3,14 +3,16 @@ package domain
 
 type ExecutionPlan struct {
 	Batch  Batch
-	Unit []ExecutionLayer
+	Layers []ExecutionLayer
 }
 
 type ExecutionLayer struct {
   Layer   Layer
-	Units []ExecutionUnit
+	Status  string
+	Modules []ExecutionUnit
 }
 
 type ExecutionUnit struct {
 	Module Module
+	Status string
 }
