@@ -19,73 +19,107 @@ func NewBatchService(db *sql.DB, repo *repository.Repository) *BatchService {
 	return &BatchService{db, repo}
 }
 
-func (s *BatchService) StartBatchRun(ctx context.Context, batchCode string) (domain.Batch, error) {
+func (s *BatchService) StartBatchRun(ctx context.Context, batchCode string) (domain.ExecutionPlan, error) {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return domain.Batch{}, err
+		return domain.ExecutionPlan{}, err
 	}
 	defer tx.Rollback()
 
 	// Check if the batch is already RUNNING
 	err = s.repo.CheckRunningInstance(ctx, tx, batchCode)
 	if err != nil {
-		return domain.Batch{}, err
+		return domain.ExecutionPlan{}, err
 	}
-	fmt.Printf("%s is not running. Proceeding with new run\n", batchCode)
+
+	brID, err := s.repo.CheckReprocessInstance(ctx, tx, batchCode)
+	if err != nil {
+		return domain.ExecutionPlan{}, err
+	}
+	//
+	// Check for failed Batches from previous runs
+	fmt.Printf("Checking for previous failed runs of %s\n", batchCode)
+	if brID != "" {
+		fmt.Printf("There was a failed batch: %s\n", brID)
+	} else {
+		fmt.Print("No failed Batch found. Continuing...\n")
+	}
 
 	// If there is no batch running at the time, create a new batchRun
-	batchRunID, err := s.repo.InsertBatchRun(ctx, tx, batchCode)
+	fmt.Printf("%s is not running. Proceeding with new run\n", batchCode)
+
+	executionPlan, err := s.repo.InsertBatchRun(ctx, tx, batchCode)
 	if err != nil {
-		return domain.Batch{}, err
+		return domain.ExecutionPlan{}, err
 	}
 
 	// Insert the layers for the new batch
-	layerIDs, err := s.repo.FindLayers(ctx, tx, batchCode)
+	layers, err := s.repo.FindLayers(ctx, tx, batchCode)
 	if err != nil {
-		return domain.Batch{}, err
+		return domain.ExecutionPlan{}, err
 	}
 
-	var layerRunIDs []domain.Layer
-	for _, layerID := range layerIDs {
-		lrID, err := s.repo.InsertLayerRun(ctx, tx, batchRunID, layerID)
-		if err != nil {
-			return domain.Batch{}, err
-		}
-		layerRunIDs = append(layerRunIDs, lrID)
-	}
+	var layerRuns []domain.ExecutionLayer
 
-	// Insert the Modules for each Layer
-	for _, layerRun := range layerRunIDs {
-		modules, err := s.repo.FindModules(ctx, tx, batchRunID, layerRun)
+	for _, layer := range layers {
+		var layerRun domain.ExecutionLayer
+		layerRun, err := s.repo.InsertLayerRun(ctx, tx, layer, executionPlan.Batch.BatchRunID)
 		if err != nil {
-			return domain.Batch{}, err
+			return domain.ExecutionPlan{}, err
 		}
+
+		// Insert the Modules for each Layer
+		modules, err := s.repo.FindModules(ctx, tx, executionPlan.Batch.BatchCode, layerRun)
+		if err != nil {
+			return domain.ExecutionPlan{}, err
+		}
+
+		var moduleRuns []domain.ExecutionUnit
 		for _, module := range modules {
-			module, err := s.repo.InserModuleRun(ctx, tx, batchRunID, layerRun, module)
+			module, err := s.repo.InsertModuleRun(ctx, tx, executionPlan.Batch.BatchRunID, layerRun.Layer.LayerRunID, module)
 			if err != nil {
-				return domain.Batch{}, err
+				return domain.ExecutionPlan{}, err
 			}
-			fmt.Printf("BatchCode: %s; BatchID: %s; LayerID: %s; LayerCode: %s; LayerRun: %s; ModuleID: %s; ModuleCode: %s; ModuleRun: %s;\n", batchRunID.BatchCode, batchRunID.BatchID, layerRun.LayerID, layerRun.LayerCode, layerRun.LayerRunID, module.ModuleID, module.ModuleCode, module.ModuleRunID)
+			moduleRuns = append(moduleRuns, module)
 		}
+		layerRun.Modules = moduleRuns
+		layerRuns = append(layerRuns, layerRun)
 	}
+
+	executionPlan.Layers = layerRuns
 
 	// COMMIT transactions
 	if err = tx.Commit(); err != nil {
-		return domain.Batch{}, err
+		return domain.ExecutionPlan{}, err
 	}
-	return batchRunID, nil
+	return executionPlan, nil
 }
 
-func (s *BatchService) UpdateBatchRunStatus(ctx context.Context, batch domain.Batch) error {
+func (s *BatchService) UpdateBatchRunStatus(ctx context.Context, batch domain.ExecutionPlan) error {
+	b := batch
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	status, err := s.repo.UpdateLayerStatus(ctx, tx, )
+	for _, ly := range b.Layers {
+		status, err := s.repo.CheckLayerStatus(ctx, tx, b.Batch.BatchRunID, ly.Layer.LayerCode)
+		if err != nil {
+			return err
+		}
+		err = s.repo.UpdateLayerStatus(ctx, tx, ly.Layer.LayerRunID, status)
+		if err != nil {
+			return err
+		}
+	}
 
-	err = s.repo.UpdateBatchStatus(ctx, tx, batch, "SUCCESS")
+	status, err := s.repo.CheckBatchStatus(ctx, tx, b.Batch.BatchRunID)
+	if err != nil {
+		return err
+	}
+
+	err = s.repo.UpdateBatchStatus(ctx, tx, b.Batch.BatchRunID, status)
 	if err != nil {
 		return err
 	}
