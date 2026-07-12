@@ -1,38 +1,34 @@
 // Package orchestrator manages the tasks for the ETL
 package orchestrator
 
-import "context"
+import (
+	"context"
+
+	"github.com/VladAluas/Sisyphus/internal/domain"
+	"github.com/VladAluas/Sisyphus/internal/worker"
+)
 
 type Orchestrator struct {
-	repo *Repository
+	pool *worker.Pool
 }
 
-func New(repo *Repository) *Orchestrator {
-	return &Orchestrator{repo}
+func New(pool *worker.Pool) *Orchestrator {
+	return &Orchestrator{pool}
 }
 
-func (o *Orchestrator) Run(
-	ctx context.Context,
-	batchRunID string,
-) (<-chan ModuleTask, error) {
-	tasks, err := o.repo.GetBatchModules(batchRunID)
-	if err != nil {
-		return nil, err
+func (o *Orchestrator) executeLayer(ctx context.Context, layer domain.ExecutionLayer) error {
+	// fmt.Printf("Now running layer: %s; LayerRunID: %s; context: %s\n", layer.Layer.LayerCode, layer.Layer.LayerRunID, ctx)
+	return o.pool.Run(ctx, layer.Modules)
+}
+
+func (o *Orchestrator) Run(ctx context.Context, plan domain.ExecutionPlan) error {
+	for _, layer := range plan.Layers {
+
+		err := o.executeLayer(ctx, layer)
+		if err != nil {
+			return err
+		}
 	}
 
-	out := make(chan ModuleTask)
-
-	go func() {
-		defer close(out)
-
-		for _, task := range tasks {
-			select {
-			case <-ctx.Done():
-				return
-			case out <- task:
-			}
-		}
-	}()
-
-	return out, nil
+	return nil
 }
