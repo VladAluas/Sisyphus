@@ -5,16 +5,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/VladAluas/Sisyphus/internal/orchestrator"
+	"github.com/VladAluas/Sisyphus/internal/domain"
 )
 
 type CsvExtractor struct{}
 
 func (e *CsvExtractor) Extract(
-	ctx  context.Context,
-	task orchestrator.ModuleTask,
+	ctx context.Context,
+	task domain.ExecutionUnit,
 ) error {
-	fmt.Printf("Extracting CSV Data for %s", task.ModuleID)
+	fmt.Printf("CSV_EXTRACTOR: Extracting data for %s\n", task.Module.ModuleCode)
 
 	return nil
 }

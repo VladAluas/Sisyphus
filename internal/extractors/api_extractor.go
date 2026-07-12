@@ -5,16 +5,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/VladAluas/Sisyphus/internal/orchestrator"
+	"github.com/VladAluas/Sisyphus/internal/domain"
 )
 
 type APIExtractor struct{}
 
 func (e *APIExtractor) Extract(
 	ctx context.Context,
-	task orchestrator.ModuleTask,
+	task domain.ExecutionUnit,
 ) error {
-	fmt.Printf("Extracting Data for API: %s", task.ModuleID)
+	fmt.Printf("API_EXTRACTOR: Extracting data for %s\n", task.Module.ModuleCode)
 
 	return nil
 }

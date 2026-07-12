@@ -4,19 +4,28 @@ package main
 import (
 	"context"
 	"log"
-	"sync"
+	"os"
 
 	"github.com/VladAluas/Sisyphus/internal/config"
 	"github.com/VladAluas/Sisyphus/internal/db"
 	"github.com/VladAluas/Sisyphus/internal/extractors"
 	"github.com/VladAluas/Sisyphus/internal/orchestrator"
+	"github.com/VladAluas/Sisyphus/internal/repository"
+	"github.com/VladAluas/Sisyphus/internal/service"
+	"github.com/VladAluas/Sisyphus/internal/worker"
 )
 
 func main() {
-	const NumWorkers = 4
-	var wg sync.WaitGroup
+	// const NumWorkers = 4
+	// var wg sync.WaitGroup
 
+	args := os.Args
 	cfg := config.Load()
+
+	if len(args) < 2 {
+		log.Fatal("batch code missing")
+	}
+	batchCode := args[1]
 
 	pg, err := db.NewDatabase(
 		cfg.DBHost,
@@ -29,29 +38,35 @@ func main() {
 		log.Fatal(err)
 	}
 
-	repo := orchestrator.NewRepository(pg)
-	orch := orchestrator.New(repo)
-
-	ctx := context.Background()
-
-	tasks, err := orch.Run(ctx, "019eebcc-5b66-7d3b-a678-af05fb8eb64d")
+	registry := extractors.NewDefaultRegistry()
+	ctxt := context.Background()
+	repo := repository.NewRepository(pg)
+	pool := worker.New(2, registry)
+	orch := orchestrator.New(pool)
+	srvc := service.NewBatchService(pg, repo)
+	plan, err := srvc.StartBatchRun(ctxt, batchCode)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// for task := range tasks {
-	// 	fmt.Printf("BatchID: %s | ModuleID: %s | LayerID: %s\n", task.BatchID, task.ModuleID, task.LayerID)
-	// }
-
-	for i := 0; i < NumWorkers; i++ {
-		wg.Add(1)
-
-		go func(id int) {
-			defer wg.Done()
-
-			extractors.ExtractWorker(ctx, i, tasks)
-		}(i)
-
-		wg.Wait()
+	err = orch.Run(ctxt, plan)
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	err = srvc.UpdateBatchRunStatus(ctxt, plan)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// for i := 0; i < NumWorkers; i++ {
+	// 	wg.Add(1)
+	//
+	// 	go func(id int) {
+	// 		defer wg.Done()
+	//
+	// 		extractors.ExtractWorker(ctx, i, tasks)
+	// 	}(i)
+	//
+	// 	wg.Wait()
+	// }
 }

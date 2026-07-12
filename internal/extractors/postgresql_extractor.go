@@ -5,16 +5,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/VladAluas/Sisyphus/internal/orchestrator"
+	"github.com/VladAluas/Sisyphus/internal/domain"
 )
 
 type PostgresqlExtractor struct{}
 
 func (e *PostgresqlExtractor) Extract(
 	ctx context.Context,
-	task orchestrator.ModuleTask,
+	task domain.ExecutionUnit,
 ) error {
-	fmt.Printf("Extracting data for %s", task.ModuleID)
+	fmt.Printf("POSTGRESQL_EXTRACTOR: Extracting data for %s\n", task.Module.ModuleCode)
 
 	return nil
 }
