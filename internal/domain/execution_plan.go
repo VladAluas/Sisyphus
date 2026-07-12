@@ -14,5 +14,6 @@ type ExecutionLayer struct {
 
 type ExecutionUnit struct {
 	Module Module
+	Source Source
 	Status string
 }
