@@ -3,14 +3,17 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 
 	"github.com/VladAluas/Sisyphus/internal/config"
 	"github.com/VladAluas/Sisyphus/internal/db"
+	"github.com/VladAluas/Sisyphus/internal/extractors"
 	"github.com/VladAluas/Sisyphus/internal/orchestrator"
 	"github.com/VladAluas/Sisyphus/internal/repository"
 	"github.com/VladAluas/Sisyphus/internal/service"
+	"github.com/VladAluas/Sisyphus/internal/worker"
 )
 
 func main() {
@@ -36,9 +39,12 @@ func main() {
 		log.Fatal(err)
 	}
 
+	registry := extractors.NewDefaultRegistry()
+	fmt.Print(registry)
 	ctx := context.Background()
 	repo := repository.NewRepository(pg)
-	orch := orchestrator.New()
+	pool := worker.New(2, registry)
+	orch := orchestrator.New(pool)
 	svc := service.NewBatchService(pg, repo)
 	plan, err := svc.StartBatchRun(ctx, batchCode)
 	if err != nil {
