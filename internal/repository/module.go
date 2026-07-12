@@ -58,7 +58,7 @@ func (r *Repository) InsertModuleRun(ctx context.Context, db DBTX, batchRunID st
 		return domain.ExecutionUnit{}, err
 	}
 
-	moduleRun.Source.SourceSystem = "Postgresql"
+	moduleRun.Source.SourceSystem = "CSV"
 
 	return moduleRun, nil
 }
