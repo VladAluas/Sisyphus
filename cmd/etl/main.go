@@ -3,7 +3,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 
@@ -40,23 +39,22 @@ func main() {
 	}
 
 	registry := extractors.NewDefaultRegistry()
-	fmt.Print(registry)
-	ctx := context.Background()
+	ctxt := context.Background()
 	repo := repository.NewRepository(pg)
 	pool := worker.New(2, registry)
 	orch := orchestrator.New(pool)
-	svc := service.NewBatchService(pg, repo)
-	plan, err := svc.StartBatchRun(ctx, batchCode)
+	srvc := service.NewBatchService(pg, repo)
+	plan, err := srvc.StartBatchRun(ctxt, batchCode)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = orch.Run(ctx, plan)
+	err = orch.Run(ctxt, plan)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = svc.UpdateBatchRunStatus(ctx, plan)
+	err = srvc.UpdateBatchRunStatus(ctxt, plan)
 	if err != nil {
 		log.Fatal(err)
 	}
