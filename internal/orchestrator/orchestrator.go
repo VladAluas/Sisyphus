@@ -17,7 +17,6 @@ func New(pool *worker.Pool) *Orchestrator {
 }
 
 func (o *Orchestrator) executeLayer(ctx context.Context, layer domain.ExecutionLayer) error {
-	// fmt.Printf("Now running layer: %s; LayerRunID: %s; context: %s\n", layer.Layer.LayerCode, layer.Layer.LayerRunID, ctx)
 	return o.pool.Run(ctx, layer.Modules)
 }
 
