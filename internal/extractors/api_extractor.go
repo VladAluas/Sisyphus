@@ -14,7 +14,7 @@ func (e *APIExtractor) Extract(
 	ctx context.Context,
 	task domain.ExecutionUnit,
 ) error {
-	fmt.Printf("Extracting Data for API: %s", task.Module.ModuleID)
+	fmt.Printf("API_EXTRACTOR: Extracting data for %s\n", task.Module.ModuleCode)
 
 	return nil
 }

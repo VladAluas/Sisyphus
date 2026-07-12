@@ -14,7 +14,7 @@ func (e *PostgresqlExtractor) Extract(
 	ctx context.Context,
 	task domain.ExecutionUnit,
 ) error {
-	fmt.Printf("Extracting data for %s", task.Module.ModuleCode)
+	fmt.Printf("POSTGRESQL_EXTRACTOR: Extracting data for %s\n", task.Module.ModuleCode)
 
 	return nil
 }
