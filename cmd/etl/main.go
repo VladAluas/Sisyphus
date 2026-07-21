@@ -8,7 +8,6 @@ import (
 
 	"github.com/VladAluas/Sisyphus/internal/config"
 	"github.com/VladAluas/Sisyphus/internal/db"
-	"github.com/VladAluas/Sisyphus/internal/extractors"
 	"github.com/VladAluas/Sisyphus/internal/orchestrator"
 	"github.com/VladAluas/Sisyphus/internal/repository"
 	"github.com/VladAluas/Sisyphus/internal/service"
@@ -38,10 +37,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	registry := extractors.NewDefaultRegistry()
 	ctx := context.Background()
 	repo := repository.NewRepository(pg)
-	pool := worker.New(2, registry)
+	pool := worker.New(2)
 	orch := orchestrator.New(pool)
 	srv := service.NewBatchService(pg, repo)
 	plan, err := srv.StartBatchRun(ctx, batchCode)
