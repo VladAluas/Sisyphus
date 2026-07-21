@@ -10,7 +10,7 @@ import (
 
 type CsvExtractor struct{}
 
-func (e *CsvExtractor) Extract(
+func (e *CsvExtractor) Process(
 	ctx context.Context,
 	task domain.ExecutionUnit,
 ) error {

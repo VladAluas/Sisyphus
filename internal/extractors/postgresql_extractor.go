@@ -10,7 +10,7 @@ import (
 
 type PostgresqlExtractor struct{}
 
-func (e *PostgresqlExtractor) Extract(
+func (e *PostgresqlExtractor) Process(
 	ctx context.Context,
 	task domain.ExecutionUnit,
 ) error {

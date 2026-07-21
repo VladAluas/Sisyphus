@@ -7,11 +7,11 @@ import (
 	"github.com/VladAluas/Sisyphus/internal/domain"
 )
 
-type Extractor interface {
-	Extract(ctx context.Context, task domain.ExecutionUnit) error
+type Processor interface {
+	Process(ctx context.Context, task domain.ExecutionUnit) error
 }
 
-func GetExtractor(unit domain.ExecutionUnit) (Extractor, error) {
+func Get(unit domain.ExecutionUnit) (Processor, error) {
 	switch unit.Source.SourceSystem {
 	case "Postgresql":
 		return &PostgresqlExtractor{}, nil
