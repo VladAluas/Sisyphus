@@ -5,15 +5,14 @@ import (
 	"sync"
 
 	"github.com/VladAluas/Sisyphus/internal/domain"
-	"github.com/VladAluas/Sisyphus/internal/extractors"
 )
 
 type Pool struct {
 	workers  int
-	registry *extractors.Registry
+	registry *domain.Registry
 }
 
-func New(workers int, registry *extractors.Registry) *Pool {
+func New(workers int, registry *domain.Registry) *Pool {
 	return &Pool{
 		workers,
 		registry,
@@ -49,7 +48,7 @@ func (p *Pool) Run(ctx context.Context, units []domain.ExecutionUnit) error {
 						continue
 					}
 
-					err = extractor.Extract(ctx, unit)
+					err = extractor.Process(ctx, unit)
 					errs <- err
 				}
 			}
