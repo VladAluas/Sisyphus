@@ -7,15 +7,14 @@ import (
 	"github.com/VladAluas/Sisyphus/internal/extractors"
 )
 
-type BronzeStrategy struct {
-	extractor extractors.ExtractorsRegistry
-}
+type BronzeStrategy struct {}
 
 func (b *BronzeStrategy) Execute(
 	ctx context.Context,
 	unit domain.ExecutionUnit,
 ) error {
-	extractor, err := b.extractor.Get(unit.Source.SourceSystem)
+	e := extractors.NewExtractorsRegistry()
+	extractor, err := e.Get(unit.Source.SourceSystem)
 	if err != nil {
 		return err
 	}
