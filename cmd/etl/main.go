@@ -39,22 +39,22 @@ func main() {
 	}
 
 	registry := extractors.NewDefaultRegistry()
-	ctxt := context.Background()
+	ctx := context.Background()
 	repo := repository.NewRepository(pg)
 	pool := worker.New(2, registry)
 	orch := orchestrator.New(pool)
-	srvc := service.NewBatchService(pg, repo)
-	plan, err := srvc.StartBatchRun(ctxt, batchCode)
+	srv := service.NewBatchService(pg, repo)
+	plan, err := srv.StartBatchRun(ctx, batchCode)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = orch.Run(ctxt, plan)
+	err = orch.Run(ctx, plan)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = srvc.UpdateBatchRunStatus(ctxt, plan)
+	err = srv.UpdateBatchRunStatus(ctx, plan)
 	if err != nil {
 		log.Fatal(err)
 	}
