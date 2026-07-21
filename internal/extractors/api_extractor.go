@@ -10,7 +10,7 @@ import (
 
 type APIExtractor struct{}
 
-func (p *APIExtractor) Process(
+func (p *APIExtractor) Extract(
 	ctx context.Context,
 	task domain.ExecutionUnit,
 ) error {
