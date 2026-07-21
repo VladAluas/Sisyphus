@@ -1,7 +1,9 @@
 package extractors
 
-func NewDefaultRegistry() *Registry {
-	r := NewRegistry()
+import "github.com/VladAluas/Sisyphus/internal/domain"
+
+func NewDefaultRegistry() *domain.Registry {
+	r := domain.NewRegistry()
 
 	r.Register("Postgresql", &PostgresqlExtractor{})
 	r.Register("CSV", &CsvExtractor{})
