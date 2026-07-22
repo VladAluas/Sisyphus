@@ -1,6 +1,6 @@
 package extractors
 
-func NewDefaultRegistry() *Registry {
+func NewExtractorsRegistry() *ExtractorsRegistry {
 	r := NewRegistry()
 
 	r.Register("Postgresql", &PostgresqlExtractor{})

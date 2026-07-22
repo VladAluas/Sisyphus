@@ -5,22 +5,18 @@ import (
 	"sync"
 
 	"github.com/VladAluas/Sisyphus/internal/domain"
-	"github.com/VladAluas/Sisyphus/internal/extractors"
+	"github.com/VladAluas/Sisyphus/internal/strategy"
 )
 
 type Pool struct {
 	workers  int
-	registry *extractors.Registry
 }
 
-func New(workers int, registry *extractors.Registry) *Pool {
-	return &Pool{
-		workers,
-		registry,
-	}
+func New(workers int) *Pool {
+	return &Pool{ workers}
 }
 
-func (p *Pool) Run(ctx context.Context, units []domain.ExecutionUnit) error {
+func (p *Pool) Run(ctx context.Context, units []domain.ExecutionUnit, strategy strategy.Strategy) error {
 	jobs := make(chan domain.ExecutionUnit)
 	errs := make(chan error)
 
@@ -43,13 +39,7 @@ func (p *Pool) Run(ctx context.Context, units []domain.ExecutionUnit) error {
 						return
 					}
 
-					extractor, err := p.registry.Get(unit.Source.SourceSystem)
-					if err != nil {
-						errs <- err
-						continue
-					}
-
-					err = extractor.Extract(ctx, unit)
+					err := strategy.Execute(ctx, unit)
 					errs <- err
 				}
 			}

@@ -8,17 +8,15 @@ import (
 
 	"github.com/VladAluas/Sisyphus/internal/config"
 	"github.com/VladAluas/Sisyphus/internal/db"
-	"github.com/VladAluas/Sisyphus/internal/extractors"
 	"github.com/VladAluas/Sisyphus/internal/orchestrator"
 	"github.com/VladAluas/Sisyphus/internal/repository"
 	"github.com/VladAluas/Sisyphus/internal/service"
+	"github.com/VladAluas/Sisyphus/internal/strategy"
 	"github.com/VladAluas/Sisyphus/internal/worker"
 )
 
 func main() {
-	// const NumWorkers = 4
-	// var wg sync.WaitGroup
-
+	// CLI arguments
 	args := os.Args
 	cfg := config.Load()
 
@@ -27,6 +25,7 @@ func main() {
 	}
 	batchCode := args[1]
 
+	// Database
 	pg, err := db.NewDatabase(
 		cfg.DBHost,
 		cfg.DBPort,
@@ -38,35 +37,38 @@ func main() {
 		log.Fatal(err)
 	}
 
-	registry := extractors.NewDefaultRegistry()
-	ctxt := context.Background()
+	// Context
+	ctx := context.Background()
+
+	// Worker Pool
+	pool := worker.New(2)
+
+
+	// Repository
 	repo := repository.NewRepository(pg)
-	pool := worker.New(2, registry)
-	orch := orchestrator.New(pool)
-	srvc := service.NewBatchService(pg, repo)
-	plan, err := srvc.StartBatchRun(ctxt, batchCode)
+
+	// Service
+	srv := service.NewBatchService(pg, repo)
+
+	//Create registers
+	stratReg := strategy.NewStrategyRegistry()
+
+	// Start Batch Run
+	plan, err := srv.StartBatchRun(ctx, batchCode)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = orch.Run(ctxt, plan)
+	// Orchestrator
+	orch := orchestrator.New(pool, stratReg)
+	err = orch.Run(ctx, plan)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = srvc.UpdateBatchRunStatus(ctxt, plan)
+	// Batch Status Update
+	err = srv.UpdateBatchRunStatus(ctx, plan)
 	if err != nil {
 		log.Fatal(err)
 	}
-	// for i := 0; i < NumWorkers; i++ {
-	// 	wg.Add(1)
-	//
-	// 	go func(id int) {
-	// 		defer wg.Done()
-	//
-	// 		extractors.ExtractWorker(ctx, i, tasks)
-	// 	}(i)
-	//
-	// 	wg.Wait()
-	// }
 }
