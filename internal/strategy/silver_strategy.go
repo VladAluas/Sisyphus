@@ -7,7 +7,9 @@ import (
 	"github.com/VladAluas/Sisyphus/internal/transformers"
 )
 
-type SilverStrategy struct {}
+type SilverStrategy struct {
+	registry *transformers.CleanersRegistry
+}
 
 func (s SilverStrategy) Execute(
 	ctx context.Context,
