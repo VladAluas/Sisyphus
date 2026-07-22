@@ -3,21 +3,21 @@ package strategy
 import "fmt"
 
 type StrategyRegistry struct {
-	process map[string]Strategy
+	strategy map[string]Strategy
 }
 
 func NewRegistry() *StrategyRegistry {
 	return &StrategyRegistry{
-		process: make(map[string]Strategy),
+		strategy: make(map[string]Strategy),
 	}
 }
 
 func (r *StrategyRegistry) Register(name string, s Strategy) {
-	r.process[name] = s
+	r.strategy[name] = s
 }
 
 func (r *StrategyRegistry) Get(name string) (Strategy, error) {
-	e, ok := r.process[name]
+	e, ok := r.strategy[name]
 	if !ok {
 		return nil, fmt.Errorf("unknown strategy %s", name)
 	}
