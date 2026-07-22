@@ -39,12 +39,6 @@ func (p *Pool) Run(ctx context.Context, units []domain.ExecutionUnit, strategy s
 						return
 					}
 
-					// extractor, err := p.registry.Get(unit.Source.SourceSystem)
-					// if err != nil {
-					// 	errs <- err
-					// 	continue
-					// }
-
 					err := strategy.Execute(ctx, unit)
 					errs <- err
 				}
