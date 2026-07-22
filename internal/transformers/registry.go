@@ -3,21 +3,21 @@ package transformers
 import "fmt"
 
 type CleanersRegistry struct {
-	clean map[string]Cleaner
+	cleaners map[string]Cleaner
 }
 
 func NewRegistry() *CleanersRegistry {
 	return &CleanersRegistry{
-		clean: make(map[string]Cleaner),
+		cleaners: make(map[string]Cleaner),
 	}
 }
 
 func (r *CleanersRegistry) Register(name string, e Cleaner) {
-	r.clean[name] = e
+	r.cleaners[name] = e
 }
 
 func (r *CleanersRegistry) Get(name string) (Cleaner, error) {
-	e, ok := r.clean[name]
+	e, ok := r.cleaners[name]
 	if !ok {
 		return nil, fmt.Errorf("unknown extractor %s", name)
 	}
