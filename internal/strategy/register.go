@@ -10,14 +10,14 @@ func NewStrategyRegistry() *StrategyRegistry {
 
 	// BRONZE STRATEGY
 	brRegistry := extractors.NewExtractorsRegistry()
-	brStrategy := BronzeStrategy{brRegistry}
+	brStrategy := NewBronzeStrategy(brRegistry)
 
 	// SILVER STRATEGY
 	slRegistry := transformers.NewCleanRegistry()
-	slStrategy := SilverStrategy{slRegistry}
+	slStrategy := NewSilverStrategy(slRegistry)
 
-	r.Register("BRONZE_LAYER", &brStrategy)
-	r.Register("SILVER_LAYER", &slStrategy)
+	r.Register("BRONZE_LAYER", brStrategy)
+	r.Register("SILVER_LAYER", slStrategy)
 
 	return r
 }

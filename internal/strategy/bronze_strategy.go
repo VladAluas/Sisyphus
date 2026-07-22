@@ -11,6 +11,10 @@ type BronzeStrategy struct {
 	registry *extractors.ExtractorsRegistry
 }
 
+func NewBronzeStrategy(registry *extractors.ExtractorsRegistry) *BronzeStrategy {
+	return &BronzeStrategy{registry}
+}
+
 func (b *BronzeStrategy) Execute(
 	ctx context.Context,
 	unit domain.ExecutionUnit,

@@ -11,13 +11,15 @@ type SilverStrategy struct {
 	registry *transformers.CleanersRegistry
 }
 
+func NewSilverStrategy(registry *transformers.CleanersRegistry) *SilverStrategy {
+	return &SilverStrategy{registry}
+}
+
 func (s SilverStrategy) Execute(
 	ctx context.Context,
 	unit domain.ExecutionUnit,
 ) error {
-
-	c := transformers.NewCleanRegistry()
-	cleaner, err := c.Get("Clean")
+	cleaner, err := s.registry.Get("Clean")
 	if err != nil {
 		return err
 	}
