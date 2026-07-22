@@ -11,13 +11,12 @@ import (
 	"github.com/VladAluas/Sisyphus/internal/orchestrator"
 	"github.com/VladAluas/Sisyphus/internal/repository"
 	"github.com/VladAluas/Sisyphus/internal/service"
+	"github.com/VladAluas/Sisyphus/internal/strategy"
 	"github.com/VladAluas/Sisyphus/internal/worker"
 )
 
 func main() {
-	// const NumWorkers = 4
-	// var wg sync.WaitGroup
-
+	// CLI arguments
 	args := os.Args
 	cfg := config.Load()
 
@@ -26,6 +25,7 @@ func main() {
 	}
 	batchCode := args[1]
 
+	// Database
 	pg, err := db.NewDatabase(
 		cfg.DBHost,
 		cfg.DBPort,
@@ -37,34 +37,38 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// Context
 	ctx := context.Background()
-	repo := repository.NewRepository(pg)
+
+	// Worker Pool
 	pool := worker.New(2)
-	orch := orchestrator.New(pool)
+
+
+	// Repository
+	repo := repository.NewRepository(pg)
+
+	// Service
 	srv := service.NewBatchService(pg, repo)
+
+	//Create registers
+	stratReg := strategy.NewStrategyRegistry()
+
+	// Start Batch Run
 	plan, err := srv.StartBatchRun(ctx, batchCode)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// Orchestrator
+	orch := orchestrator.New(pool, stratReg)
 	err = orch.Run(ctx, plan)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// Batch Status Update
 	err = srv.UpdateBatchRunStatus(ctx, plan)
 	if err != nil {
 		log.Fatal(err)
 	}
-	// for i := 0; i < NumWorkers; i++ {
-	// 	wg.Add(1)
-	//
-	// 	go func(id int) {
-	// 		defer wg.Done()
-	//
-	// 		extractors.ExtractWorker(ctx, i, tasks)
-	// 	}(i)
-	//
-	// 	wg.Wait()
-	// }
 }
