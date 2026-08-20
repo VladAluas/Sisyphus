@@ -18,7 +18,10 @@ import (
 func main() {
 	// CLI arguments
 	args := os.Args
-	cfg := config.Load()
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	if len(args) < 2 {
 		log.Fatal("batch code missing")
