@@ -2,7 +2,8 @@
 package config
 
 import (
-	"log"
+	"errors"
+	"fmt"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -16,16 +17,15 @@ type Config struct {
 	DBPass string
 }
 
-func Load() Config {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
+func Load() (Config, error) {
+	if err := godotenv.Load(); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return Config{}, fmt.Errorf("error loading .env file: %w", err)
 	}
 	return Config{
-		DBHost: os.Getenv("DB_HOST"),
-		DBPort: os.Getenv("DB_PORT"),
-		DBName: os.Getenv("DB_NAME"),
-		DBUser: os.Getenv("DB_USER"),
-		DBPass: os.Getenv("DB_PASSWORD"),
-	}
+		DBHost: os.Getenv("METADATA_HOST"),
+		DBPort: os.Getenv("METADATA_PORT"),
+		DBName: os.Getenv("METADATA_NAME"),
+		DBUser: os.Getenv("METADATA_USER"),
+		DBPass: os.Getenv("METADATA_PASSWORD"),
+	}, nil
 }
